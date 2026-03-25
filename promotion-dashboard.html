@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로모션 디자인(이벤트) 대시보드 | 2025년 3월</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b0d11;--card:#13161e;--card2:#191d28;--border:#1f2433;--text:#e8eaf2;--dim:#7b8098;--accent:#7c5cfc;--cyan:#22d3ee;--green:#34d399;--orange:#fb923c;--red:#f87171;--pink:#f472b6;--yellow:#fbbf24;--awareness:#a78bfa;--interest:#38bdf8;--consideration:#4ade80}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:0;min-height:100vh}
+
+/* Top bar */
+.topbar{background:linear-gradient(135deg,#1a1030 0%,#0f1923 100%);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+.topbar .badge{background:var(--accent);color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.topbar .period{font-size:13px;color:var(--dim)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px 32px}
+
+/* KPI Row */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.aw::before{background:var(--awareness)}.kpi.in::before{background:var(--interest)}.kpi.co::before{background:var(--consideration)}.kpi.re::before{background:var(--yellow)}.kpi.ov::before{background:var(--accent)}
+.kpi .label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi .val{font-size:26px;font-weight:700}
+.kpi .sub{font-size:11px;color:var(--dim);margin-top:4px}
+.kpi .stage-tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:4px;font-weight:600}
+.stage-aw{background:rgba(167,139,250,.15);color:#c4b5fd}
+.stage-in{background:rgba(56,189,248,.15);color:#7dd3fc}
+.stage-co{background:rgba(74,222,128,.15);color:#86efac}
+
+/* Section */
+.section{margin-bottom:32px}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.section-head h2{font-size:17px;font-weight:700}
+.section-head .num{font-size:13px;color:var(--accent);font-weight:600}
+.section-desc{font-size:12px;color:var(--dim);margin-bottom:16px}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:11px;color:var(--dim);margin-bottom:16px}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:1000px){.g2,.g3{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(3,1fr)}}
+
+/* Chart */
+.ch{position:relative;height:300px}
+.ch.tall{height:380px}
+.ch.short{height:240px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--border);color:var(--dim);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+thead th.r{text-align:right}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--border)}
+tbody td.r{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:rgba(124,92,252,.04)}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.t-naver{background:rgba(34,211,238,.15);color:#67e8f9}
+.t-cpc{background:rgba(124,92,252,.15);color:#a78bfa}
+.t-retarget{background:rgba(251,146,60,.15);color:#fdba74}
+.t-meta{background:rgba(244,114,182,.15);color:#f9a8d4}
+.t-email{background:rgba(52,211,153,.15);color:#6ee7b7}
+.t-google{background:rgba(96,165,250,.15);color:#93c5fd}
+
+/* Funnel Visual */
+.funnel-vis{display:flex;align-items:center;justify-content:center;padding:20px 0;gap:0}
+.fv-step{text-align:center;position:relative}
+.fv-bar{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;border-radius:10px;margin:0 auto 8px}
+.fv-label{font-size:12px;font-weight:600}
+.fv-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.fv-arrow{display:flex;flex-direction:column;align-items:center;padding:0 8px;color:var(--dim);font-size:16px}
+.fv-arrow .rate{font-size:12px;font-weight:700;margin-top:2px}
+.fv-arrow .rate.good{color:var(--green)}
+.fv-arrow .rate.warn{color:var(--orange)}
+.fv-arrow .rate.bad{color:var(--red)}
+
+/* Bar rate */
+.bar-r{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;margin-right:5px}
+
+/* Device cards */
+.dev-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.dev{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.dev .dn{font-size:12px;font-weight:600;margin-bottom:8px}
+.dev .dm{font-size:10px;color:var(--dim);margin-bottom:2px}
+.dev .dv{font-size:18px;font-weight:700}
+
+/* Footer */
+.footer{margin-top:40px;padding:16px 32px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);text-align:center;background:var(--card)}
+
+/* Screenshot reference images */
+.ref-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:6px;padding:3px 8px;font-size:10px;color:#a78bfa;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>프로모션 디자인(이벤트) 대시보드 <span class="badge">2025년 3월</span></h1>
+  <div class="period">2025-03-01 ~ 2025-03-31 &middot; Metabase/Athena &middot; GA External Traffic + SC코드 기반</div>
+</div>
+
+<div class="container">
+
+<!-- Journey Framework Banner -->
+<div class="card" style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(56,189,248,.05),rgba(74,222,128,.03));margin-bottom:24px;padding:20px 24px;">
+  <div style="display:flex;align-items:center;gap:16px;justify-content:center;flex-wrap:wrap;">
+    <div style="text-align:center;">
+      <div class="stage-tag stage-aw" style="font-size:12px;padding:4px 12px;">Awareness</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">프로모션 유입 (도달)</div>
+    </div>
+    <div style="color:var(--dim);font-size:20px;">→</div>
+    <div style="text-align:center;">
+      <div class="stage-tag stage-in" style="font-size:12px;padding:4px 12px;">Interest</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">공고조회 (관심)</div>
+    </div>
+    <div style="color:var(--dim);font-size:20px;">→</div>
+    <div style="text-align:center;">
+      <div class="stage-tag stage-co" style="font-size:12px;padding:4px 12px;">Consideration</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">지원 (전환 행동)</div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Summary -->
+<div class="kpi-row">
+  <div class="kpi aw">
+    <div class="stage-tag stage-aw">Awareness</div>
+    <div class="label">프로모션 유입 Users</div>
+    <div class="val" style="color:var(--awareness)">1,345K</div>
+    <div class="sub">전체 프로모션 채널 합산</div>
+  </div>
+  <div class="kpi in">
+    <div class="stage-tag stage-in">Interest</div>
+    <div class="label">공고조회 Users</div>
+    <div class="val" style="color:var(--interest)">854K</div>
+    <div class="sub">유입 대비 63.4%</div>
+  </div>
+  <div class="kpi co">
+    <div class="stage-tag stage-co">Consideration</div>
+    <div class="label">지원 Users</div>
+    <div class="val" style="color:var(--consideration)">255.8K</div>
+    <div class="sub">조회 대비 29.9%</div>
+  </div>
+  <div class="kpi re">
+    <div class="label">신규 가입</div>
+    <div class="val" style="color:var(--yellow)">13.8K</div>
+    <div class="sub">프로모션 통한 가입</div>
+  </div>
+  <div class="kpi ov">
+    <div class="label">전체 전환율</div>
+    <div class="val" style="color:var(--accent)">19.0%</div>
+    <div class="sub">유입 → 지원 End-to-End</div>
+  </div>
+</div>
+
+<!-- Section 1: Journey Funnel -->
+<div class="section">
+  <div class="section-head"><div class="num">01</div><h2>고객 스테이지별 퍼널</h2></div>
+  <div class="section-desc">전체 프로모션 채널 합산 &middot; Awareness → Interest → Consideration 단계별 전환</div>
+  <div class="card">
+    <div class="funnel-vis">
+      <div class="fv-step">
+        <div class="fv-bar" style="width:260px;height:80px;background:linear-gradient(135deg,rgba(167,139,250,.3),rgba(167,139,250,.15));">1,345K</div>
+        <div class="fv-label" style="color:var(--awareness);">Awareness</div>
+        <div class="fv-sub">프로모션 유입</div>
+      </div>
+      <div class="fv-arrow">→<span class="rate good">63.4%</span></div>
+      <div class="fv-step">
+        <div class="fv-bar" style="width:200px;height:70px;background:linear-gradient(135deg,rgba(56,189,248,.3),rgba(56,189,248,.15));">854K</div>
+        <div class="fv-label" style="color:var(--interest);">Interest</div>
+        <div class="fv-sub">공고조회</div>
+      </div>
+      <div class="fv-arrow">→<span class="rate warn">29.9%</span></div>
+      <div class="fv-step">
+        <div class="fv-bar" style="width:140px;height:60px;background:linear-gradient(135deg,rgba(74,222,128,.3),rgba(74,222,128,.15));">255.8K</div>
+        <div class="fv-label" style="color:var(--consideration);">Consideration</div>
+        <div class="fv-sub">지원</div>
+      </div>
+      <div class="fv-arrow">→<span class="rate good">54.3%</span></div>
+      <div class="fv-step">
+        <div class="fv-bar" style="width:100px;height:50px;background:linear-gradient(135deg,rgba(251,191,36,.3),rgba(251,191,36,.15));">13.8K</div>
+        <div class="fv-label" style="color:var(--yellow);">Registration</div>
+        <div class="fv-sub">신규 가입</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 2: Traffic Source Composition + Channel Journey -->
+<div class="section">
+  <div class="section-head"><div class="num">02</div><h2>전체 트래픽 소스 구성 &amp; 소스별 고객 여정 비율</h2></div>
+  <div class="section-desc">프로모션 채널별 유입 점유율 + 각 소스의 Awareness→Interest→Consideration 전환 비율</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">전체 트래픽 소스 구성</div>
+      <div class="card-sub">2025/03/01 ~ 2025/03/31</div>
+      <div class="ch short">
+        <canvas id="donutChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">TOP 6 소스, 고객 여정 비율</div>
+      <div class="card-sub">각 채널의 Awareness→Interest→Consideration 전환 비중</div>
+      <div class="ch short">
+        <canvas id="stackedBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: Channel Performance Table -->
+<div class="section">
+  <div class="section-head"><div class="num">03</div><h2>프로모션 채널별 성과 비교</h2></div>
+  <div class="section-desc">GA 외부 트래픽 source/medium 기준 &middot; 프로모션 매체별 유�ץx��;(l;f�8���)�;&�;co:�$�]���]��\��H��\����X�O��XY������,a:�$����\��H����]�\�[�\����Ϗ�[��[OH��۝]�ZY��ٛ۝\�^�N�\��;'(;'�H\�\��O��[������\��H����[�\�\���Ϗ�[��[OH��۝]�ZY��ٛ۝\�^�N�\��;(l;f�\�\��O��[������\��H����x���H;(!;ff;'*����\��H�����ۜ�Y\�][ۏ��Ϗ�[��[OH��۝]�ZY��ٛ۝\�^�N�\��;)�;&�\�\��O��[������\��H����x����;(!;ff;'*����\��H����[�]�Q[�����\��H�����Y�\��][ۏ�����G#���F�VC��F&�G��C�&6�F&�R#���F&�G����F&�S���F�c���F�cࠣ���6V7F���C�F�ǒG&V�G2����F�b6�73�'6V7F���#��F�b6�73�'6V7F���ֆVB#��F�b6�73�&�V�#�C��F�c�ƃ#���λ8B�HN�κ���Y�����Rث��ι9����#���F�c��F�b6�73�'6V7F����FW62#�ȪN�X���N�x�8B��λ8B�iN��B��N�+B�HN�κ���Y��N�I�Z��+���F�c��F�b6�73�&6&B#��F�b6�73�&6�F��#��6�f2�C�&F�ǔ6�'B#���6�f3���F�c���F�c���F�cࠣ���6V7F���S�6���V�G&V�B����F�b6�73�'6V7F���#��F�b6�73�'6V7F���ֆVB#��F�b6�73�&�V�#�S��F�c�ƃ#��N�I�8B��λ8B����R��N�Y���#���F�c��F�b6�73�'6V7F����FW62#��;�ɩB�N�I��λ8Bv&V�W72�����R�W6W'2�iN��C��F�c��F�b6�73�&6&B#��F�b6�73�&6�F��#��6�f2�C�&6�G&V�D6�'B#���6�f3���F�c���F�c���F�cࠣ���6V7F���c�W6��������F�f�6F���gV��V�����F�b6�73�'6V7F���#��F�b6�73�'6V7F���ֆVB#��F�b6�73�&�V�#�c��F�c�ƃ#��xN��^�	�8B�Nٙ���θI�4>��N�9����	�����#���F�c��F�b6�73�'6V7F����FW62#���ȹ����N��κx��Xκk���N�I�ق�[��i�(i.�;^�:�٨�(i.�xɹ�Y���(i.�xɹɘN�8�f֖FF�C��IN�	N��NȪB�X�
+��hN�I���F�c��F�b6�73�&s2#��F�b6�73�&6&B"7G��S�&&�&FW"��VgC�7�6�ƖBf"���v&V�W72��#��F�b6�73�&6&B�F�F�R#��[��ȹ��W6����F�c��F�b6�73�&6&B�7V"#�4>��N�9�Bf֖FF�C���Ǔ��F�c��F�b6�73�&gb�7FW"7G��S�&�&v��'�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�[��i���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�"�d���F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"����&�vR�#�)k�2�2S��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�;^�:�٨���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#��c����F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"����&�vR�#�)k�r�S��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹ�Y�����F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�����F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"���w&VV�#�)k�sB�RS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹɘN�8���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s�6���#�f"���w&VV�#ヂ�d���F�c���F�c���F�c��F�b6�73�&6&B"7G��S�&&�&FW"��VgC�7�6�ƖBf"��֖�FW&W7B��#��F�b6�73�&6&B�F�F�R#N��κx�V����F�c��F�b6�73�&6&B�7V"#�4>��N�9�2f֖FF�C�2�IȺ��s��CC�٨��F�c��F�b6�73�&gb�7FW"7G��S�&�&v��'�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�[��i���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�#r�D���F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"���&VB�#�)k��SRS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�;^�:�٨���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�S���F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"����&�vR�#�)k��S��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹ�Y�����F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�R����F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"���w&VV�#�)k��R�RS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹɘN�8���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s�6���#�f"���w&VV�#�"㔳��F�c���F�c���F�c��F�b6�73�&6&B"7G��S�&&�&FW"��VgC�7�6�ƖBf"���6��6�FW&F��⓲#��F�b6�73�&6&B�F�F�R#�)��ق�Xκk����F�f�6F�����F�c��F�b6�73�&6&B�7V"#�4>��N�9�Rf֖FF�C��IȺ��CSt��٨��F�c��F�b6�73�&gb�7FW"7G��S�&�&v��'�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�[��i���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�#r�D���F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"���&VB�#�)k�ヂS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#�;^�:�٨���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�ST���F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"����&�vR�#�)k���RS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹ�Y�����F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s#�C�ㄳ��F�c���F�c��F�b7G��S�&f��B�6��S���6���#�f"���w&VV�#�)k�sr�bS��F�c��F�b6�73�&gb�7FW"7G��S�&�&v�㣇�#��F�b7G��S�&f��B�6��S���6���#�f"���F�Ғ#��xɹɘN�8���F�c��F�b7G��S�&f��B�6��S�#��f��B�vV�v�C�s�6���#�f"���w&VV�#�3r㔳��F�c���F�c���F�c���F�c��F�b6�73�&6&B#��F�b6�73�&6&B�F�F�R#��xN��^�	�8B�Nٙ��ʂ��N�Y��F�c��F�b6�73�&6�6��'B#��6�f2�C�&gV��V�6�6�'B#���6�f3���F�c���F�c���F�cࠣ���6V7F���s�FWf�6R����F�b6�73�'6V7F���#��F�b6�73�'6V7F���ֆVB#��F�b6�73�&�V�#�s��F�c�ƃ#�IN�	N��NȪN�8B�xɹ��θI��K��Y����	�����#���F�c��F�b6�73�'6V7F����FW62#�t�K��Y����	��;^�:�٨�(i.�xɹȹ���(i.�xɹɘN�8��Nٙ��ʃ��F�c��F�b6�73�&s"#��F�b7G��S�&F�7���6��FV�G2#��F�b6�73�&6&B#��F�b6�73�&FWb�w&�B#��F�b6�73�&FWb#��F�b6�73�&F�"7G��S�&6���#�f"���v&V�W72�#��3��F�c��F�b6�73�&F�#�;^�:�٨��K��Y���F�c��F�b6�73�&Gb"7G��S�&f��B�6��S�G�#�B�S����F�c��F�b7G��S�&�&v�㣇��&�&FW"�F���6�ƖBf"���&�&FW"��FF��r�F����#��F�b6�73�&F�#��xɹȹ����ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"����&�vR�#��bS��F�c���F�c��F�b6�73�&F�#��xɹɘN�8��ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"���w&VV�#�s�S��F�c���F�c��F�b6�73�&FWb#��F�b6�73�&F�"7G��S�&6���#�f"��֖�FW&W7B�#�3��F�c��F�b6�73�&F�#�;^�:�٨��K��Y���F�c��F�b6�73�&Gb"7G��S�&f��B�6��S�G�#�2�D���F�c��F�b7G��S�&�&v�㣇��&�&FW"�F���6�ƖBf"���&�&FW"��FF��r�F����#��F�b6�73�&F�#��xɹȹ����ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"����&�vR�#��S��F�c���F�c��F�b6�73�&F�#��xɹɘN�8��ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"���w&VV�#�2�"S��F�c���F�c��F�b6�73�&FWb#��F�b6�73�&F�"7G��S�&6���#�f"���7��#��3��F�c��F�b6�73�&F�#�;^�:�٨��K��Y���F�c��F�b6�73�&Gb"7G��S�&f��B�6��S�G�#�2�cd���F�c��F�b7G��S�&�&v�㣇��&�&FW"�F���6�ƖBf"���&�&FW"��FF��r�F����#��F�b6�73�&F�#��xɹȹ����ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"����&�vR�#��S��F�c���F�c��F�b6�73�&F�#��xɹɘN�8��ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"���w&VV�#�s��S��F�c���F�c��F�b6�73�&FWb#��F�b6�73�&F�"7G��S�&6���#�f"���&VB�#��r�����	N���ɻ����F�c��F�b6�73�&F�#�;^�:�٨��K��Y���F�c��F�b6�73�&Gb"7G��S�&f��B�6��S�G�#�"�#t���F�c��F�b7G��S�&�&v�㣇��&�&FW"�F���6�ƖBf"���&�&FW"��FF��r�F����#��F�b6�73�&F�#��xɹȹ����ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"���&VB�#�"�"S��F�c���F�c��F�b6�73�&F�#��xɹɘN�8��ʃ��F�c��F�b6�73�&Gb"7G��S�&6���#�f"���w&VV�#��S��F�c���F�c���F�c���F�c���F�c��F�b6�73�&6&B#��F�b6�73�&6&B�F�F�R#�IN�	N��NȪB�Nٙ��ʂ��N�Y��F�c��F�b6�73�&6�6��'B#��6�f2�C�&FWd6�'B#���6�f3���F�c���F�c���F�c���F�cࠣ���6V7F�����Vff�6�V�7��G&������F�b6�73�'6V7F���#��F�b6�73�'6V7F���ֆVB#��F�b6�73�&�V�#����F�c�ƃ#��N�I٪��ʂ�zNث��j�ȪC���#���F�c��F�b6�73�'6V7F����FW62#�����R�yκ�����g2�xɹ�Nٙ��ʂ���f֖FF�C��(N��B�Ϋ���xɹW6W'2f֖FF�C��8��8��z��	R����8N�8B٪��ʃ��F�c��F�b6�73�&6&B#��F�b6�73�&6�F��#��6�f2�C�&'V&&�T6�'B#���6�f3���F�c���F�c���F�cࠣ��F�c�����6��F��W"��ࠣ�F�b6�73�&f��FW"#��HN�κ���Y��IN���ۂ���N�*Nث����ȹλ;N�9�f֖FF�C�����N�K���C�##R�2��##R�2�3f֖FF�C�6�W&6S��WF&6RF�V��6V�e���6�v�E�FF�&����W6��f֖FF�C�g&�Wv�&��v&V�W72(i"��FW&W7B(i"6��6�FW&F�����F�cࠣ�67&�C��������DD����Ц6��7B4������t�fW"F�7��r�C�wB��fW"r�7�c�##sBƧc�C#�s#��#Sc3r�&S�c#C7�����t52��(�8��I�:�r�C�wB�72r�7�Ss#C�Ƨc�3S�r���3"�&S�sCS�����t7&�FV���j��8�)���R�r�C�wB�&WF&vWBr�7�CCcC�Ƨc�C33����c3R�&S�3w�����u%D$��W6R��j��8�)���R�r�C�wB�&WF&vWBr�7�3�CbƧc�33�"���#�&S�w�����tV���r�C�wB�V���r�7�#cs�Ƨc�cb��#32�&S�3'�����t�WF�f6V&�����r�r�C�wB��WFr�7����Ƨc�Ss���cCR�&S������tv��v�RF�7��r�C�wB�v��v�Rr�7�#3Ƨc�3�2��3b�&S�'���Ӱ����F�ǒFF'�6���V��g&��VW'���6��7B&tF�ǒ��$�fW"F�7��#����$52#����%&WF&vWF��r#����$�WF#����$V���#���Ӱ����V�FRg&��VW'�FF�6��7BF�Ǖ&r����&B#�#2�"�$�fW"F�7��#�ss��$52#��#sR�%&WF&vWF��r#�#��$�WF#�#R�$V���#������&B#�#2�""�$�fW"F�7��#���$52#��cs��%&WF&vWF��r#�3C"�$�WF#�#S��$V���#�#w����&B#�#2�2"�$�fW"F�7��#�3�$52#�#ScR�%&WF&vWF��r#�S32�$�WF#�#S��$V���#��G����&B#�#2�B"�$�fW"F�7��#�3#�sB�$52#�#S3Sr�%&WF&vWF��r#�c�B�$�WF#�#�"�$V���#�3W����&B#�#2�R"�$�fW"F�7��#�3Cr�$52#�#3���%&WF&vWF��r#�s2�$�WF#�#���$V���#�#s����&B#�#2�b"�$�fW"F�7��#�#�S#��$52#�##S�r�%&WF&vWF��r#�sr�$�WF#�3C2�$V���#�#c�����&B#�#2�r"�$�fW"F�7��#�#cS��$52#�#3�%&WF&vWF��r#�C#2�$�WF#�#�R�$V���#�##�����&B#�#2��"�$�fW"F�7��#�b�$52#��3sr�%&WF&vWF��r#���b�$�WF#�#cB�$V���#�#�����&B#�#2��"�$�fW"F�7��#��C2�$52#�Cb�%&WF&vWF��r#�#cB�$�WF#�3CB�$V���#��7����&B#�#2�"�$�fW"F�7��#�3CcS�$52#�#S�c��%&WF&vWF��r#�#�$�WF#�3S�$V���#�3�����&B#�#2�"�$�fW"F�7��#�3##C�$52#�#CS#b�%&WF&vWF��r#�Ss�$�WF#�#�B�$V���#�#s����&B#�#2�""�$�fW"F�7��#�3�#�$52#�#3cB�%&WF&vWF��r#�#����$�WF#�3�$V���#�c�'����&B#�#2�2"�$�fW"F�7��#�#�ss�$52#�##�R�%&WF&vWF��r#�#33R�$�WF#�#�b�$V���#���w����&B#�#2�B"�$�fW"F�7��#�#SsC��$52#���s"�%&WF&vWF��r#�#�$�WF#�#���$V���#�SG����&B#�#2�R"�$�fW"F�7��#��c3b�$52#��#CB�%&WF&vWF��r#��3�$�WF#�#sR�$V���#�sw����&B#�#2�b"�$�fW"F�7��#�s�r�$52#�C��%&WF&vWF��r#�#�R�$�WF#�#cr�$V���#�sw����&B#�#2�r"�$�fW"F�7��#�3c#s��$52#�#sc�%&WF&vWF��r#�#SC��$�WF#�#c2�$V���#�3s�����&B#�#2��"�$�fW"F�7��#�3#sC��$52#�#Cc3"�%&WF&vWF��r#�#S2�$�WF#�#S2�$V���#�S#g����&B#�#2��"�$�fW"F�7��#�3�b�$52#�#3#R�%&WF&vWF��r#�#�"�$�WF#�#32�$V���#�c3g����&B#�#2�#"�$�fW"F�7��#�#�3B�$52#�#SS�%&WF&vWF��r#�#3�$�WF#�#��$V���#�s�G����&B#�#2�#"�$�fW"F�7��#�#SCC�$52#��s2�%&WF&vWF��r#�#��$�WF#�3#�$V���#�3����&B#�#2�#""�$�fW"F�7��#��3r�$52#��3�2�%&WF&vWF��r#�3�r�$�WF#�#��$V���#�C7����&B#�#2�#2"�$�fW"F�7��#�3r�$52#�#�%&WF&vWF��r#�C��$�WF#�33��$V���#�S����&B#�#2�#B"�$�fW"F�7��#�33S�$52#�#S��%&WF&vWF��r#�#3r�$�WF#�32�$V���#�S�g����&B#�#2�#R"�$�fW"F�7��#�3Ss�$52#�#C3#�%&WF&vWF��r#�#3��$�WF#�#Cr�$V���#��w����&B#�#2�#b"�$�fW"F�7��#�#�S3R�$52#�##Sc�%&WF&vWF��r#��S2�$�WF#�#cr�$V���#�s#W����&B#�#2�#r"�$�fW"F�7��#�#�C�B�$52#�#S3"�%&WF&vWF��r#�#3C�$�WF#�#c�$V���#���W����&B#�#2�#�"�$�fW"F�7��#�#C3��$52#��C�r�%&WF&vWF��r#�#33�$�WF#�#S�$V���#�CC�����&B#�#2�#�"�$�fW"F�7��#��SCR�$52#��#2�%&WF&vWF��r#�sR�$�WF#�#sb�$V���#�3#g����&B#�#2�3"�$�fW"F�7��#�#r�$52#���%&WF&vWF��r#��c�$�WF#�33"�$V���#�CC�����&B#�#2�3"�$�fW"F�7��#�3Cs��$52#�#C32�%&WF&vWF��r#�#cR�$�WF#�3S�$V���#�Cs'ХӰ��6��7BFFW2�F�Ǖ&r���B��B�B���6��7BF�F�F�ǒ�F�Ǖ&r���B��E�$�fW"F�7��%ҶE�$52%ҶE�%&WF&vWF��r%ҶE�$�WF%ҶE�$V���%ғ�����������T�U%2����ЦgV�7F���f�B�◶�b����Sb�&WGW&���Sb��F�f��VB���t�s��b����S2�&WGW&���S2��F�f��VB���t�s�&WGW&��rwЦgV�7F���f��◷&WGW&���F���6�U7G&��r�v��Ե"r�ЦgV�7F���7B��"��&WGW&�#��"����F�f��VB���rRs�~(	BwР��������4�%BDTdT�E2����Ф6�'B�FVfV�G2�6���#�r3v#���s�6�'B�FVfV�G2�&�&FW$6���#�r3c#C32s�6�'B�FVfV�G2�f��B�f֖Ǔ�"u&WFV�F&Br�6�2�6W&�b#�6�'B�FVfV�G2�f��B�6��S�����������4���T�D$�R����Ц6��7BF#�F�7V�V�B�vWDV�V�V�D'��B�v6�F&�Rr���4��f�$V6��3�簢6��7B�#�2�b�2�7��#�2��2�b��S&S�2��2�7���6��7BG#�F�7V�V�B�7&VFTV�V�V�B�wG"r���G"���W$�D����FC��7�6�73�'FrG�2�G�#�G�2�����7����FC��FB6�73�'"#�G�f��2�7����FC��FB6�73�'"#�G�f��2�b����FC��FB6�73�'"#��7�6�73�&&"�""7G��S�'v�GF��G��"��g���&6�w&�V�C�f"��֖�FW&W7B�#���7��G��"�F�f��VB���S��FC��FB6�73�'"#�G�f��2�����FC��FB6�73�'"#��7�6�73�&&"�""7G��S�'v�GF��G�"��'���&6�w&�V�C�f"���6��6�FW&F���#���7��G�"�F�f��VB���S��FC��FB6�73�'""7G��S�&f��B�vV�v�C�c�6���#�G�S&S�#�wf"���w&VV�s�S&S��wf"����&�vR�s�wf"���&VB�w�#�G�S&R�F�f��VB���S��FC��FB6�73�'"#�G�f��2�&R����FC���F"�V�D6���B�G"���ғ����������D��UB4�%B����Ц�Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�vF��WD6�'Br�ǰ�G�S�vF�Vv��WBr��FF����&V�3��t�fW"F�7��r�t52��(�8��I�:�r�t7&�FV�r�u%D$��W6Rr�tV���r�t�WFr�tv��v�RF�7��u���FF6WG3����FF��c�##sB�Ss#C��CCcC��3�Cb�#cs�Ã���#3���&6�w&�V�D6���#��r3#&C6VRr�r3v3V6f2r�r6f#�#62r�r6c�s3br�r33FC3��r�r6cCs&#br�r3cVfu���&�&FW%v�GF������fW$�fg6WC����Т����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R�7WF�WC�sc"Rr���Vv��3����VvV�C���6�F���w&�v�Br��&V�3��W6U���E7G��S�G'VR����E7G��S�v6�&6�Rr�FF��s���f��C��6��S������F���F���6��&6�3���&Væ3��G�2��&V�ӢG�f��2�&r���G��2�&r�3CC�32���F�f��VB���R��ТТЧғ����������5D4�TB$"���W&�W�7FvR'�6�W&6R�����Ц6��7B7&4��W3ղt�fW%��F�7��r�t52r�u&WF&vWF��rr�tV���r�t�WFr�tv��v�U��F�7��uӰ�6��7B7&47ճc�##sB�Ss#C��S�S�B�#cs�Ã���#3Ӱ�6��7B7&4�cճC#�s#�3S�r�Scss�cb�Ss��3�5Ӱ�6��7B7&4ճ#Sc3r��3"�s�Sb�#32�cCR�3eӰ��Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�w7F6�VD&$6�'Br�ǰ�G�S�v&"r��FF����&V�3�7&4��W2��FF6WG3�����&Vâtv&V�W72��ǒr�FF�7&47����ƒ��₆�7&4�e��Ғ����F�f��VB����&6�w&�V�D6���#�w&v&�cr�3��#S��R�r�&�&FW%&F�W3�'�����&Vât��FW&W7B��٨r�FF�7&47����ƒ��₇7&4�e����7&4��Ғ����F�f��VB����&6�w&�V�D6���#�w&v&�Sb����#C���R�r�&�&FW%&F�W3�'�����&Vât6��6�FW&F�����xɹ�r�FF�7&47����ƒ���7&4�������F�f��VB����&6�w&�V�D6���#�w&v&�sB�##"�#���R�r�&�&FW%&F�W3�'ТТ����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R��66�W3������7F6�VC�G'VR�w&�C��F�7���f�6W��F�6�3��f��C��6��S����������7F6�VC�G'VR�����F�6�3��6��&6��c��b�rRw��w&�C��6���#�w&v&�3�3b�S��R�w�Т����Vv��3����VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�w&V7Br�FF��s��f��C��6��S������F���F���6��&6�3���&Væ3��2�FF6WB��&V²s�r�2�&r�rRw�ТТЧғ����������D�ŒE$T�B����Ц�Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�vF�ǔ6�'Br�ǰ�G�S�vƖ�Rr��FF����&V�3�FFW2��FF6WG3�����&Vâtv&V�W72�����R�r�FF�F�Ǖ&r���C��E�$�fW"F�7��%ҶE�$52%ҶE�%&WF&vWF��r%ҶE�$�WF%ҶE�$V���%Ғ�&�&FW$6���#�r6s�&fr�&6�w&�V�D6���#�w&v&�cr�3��#S����r�f��çG'VR�FV�6����2����E&F�W3��W�����&Vât��FW&W7B��;^�:�٨r�FF�F�Ǖ&r���C�簢6��7BF�F��E�$�fW"F�7��%ҶE�$52%ҶE�%&WF&vWF��r%ҶE�$�WF%ҶE�$V���%Ӱ�&WGW&��F��&�V�B�F�F£�c3B���Ғ�&�&FW$6���#�r33�&Fc�r�&6�w&�V�D6���#�w&v&�Sb����#C���b�r�f��çG'VR�FV�6����2����E&F�W3��W�����&Vât6��6�FW&F�����xɹ�r�FF�F�Ǖ&r���C�簢6��7BF�F��E�$�fW"F�7��%ҶE�$52%ҶE�%&WF&vWF��r%ҶE�$�WF%ҶE�$V���%Ӱ�&WGW&��F��&�V�B�F�F£�����Ғ�&�&FW$6���#�r3FFS�r�&6�w&�V�D6���#�w&v&�sB�##"�#���b�r�f��çG'VR�FV�6����2����E&F�W3��WТТ����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R����FW&7F��㧶��FS�v��FW�rƖ�FW'6V7C�f�6W����Vv��3���VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�v6�&6�Rr�FF��s�G���F���F���6��&6�3���&Væ3��2�FF6WB��&V²s�r�f��2�&r������66�W3�����&Vv��E�W&�G'VR�F�6�3��6��&6��c��f�B�b���w&�C��6���#�w&v&�3�3b�S��R�w��ǃ��w&�C��F�7���f�6W��F�6�3����&�FF���CW��ТЧғ����������4���T�E$T�B����Ц6��7B6�3װ�t�fW"F�7��s�r3#&C6VRr�t52s�r3v3V6f2r�u&WF&vWF��rs�r6f#�#62r�t�WFs�r6cCs&#br�tV���s�r33FC3��p�Ӱ��Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�v6�G&V�D6�'Br�ǰ�G�S�vƖ�Rr��FF����&V�3�FFW2��FF6WG3��&�V7B�W�2�6�2����6��⇰��&Væ6��FF�F�Ǖ&r���C��E�6�Ғ�&�&FW$6���#�6�5�6���&6�w&�V�D6���#�wG&�7&V�Br�FV�6����2����E&F�W3��&�&FW%v�GF�� �Ғ������F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R����FW&7F��㧶��FS�v��FW�rƖ�FW'6V7C�f�6W����Vv��3���VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�v6�&6�Rr�FF��s�G���F���F���6��&6�3���&Væ3��2�FF6WB��&V²s�r�f��2�&r������66�W3�����&Vv��E�W&�G'VR�F�6�3��6��&6��c��f�B�b���w&�C��6���#�w&v&�3�3b�S��R�w��ǃ��w&�C��F�7���f�6W��F�6�3����&�FF���CW��ТЧғ����������eT��T�4��$R����Ц�Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�vgV��V�6�6�'Br�ǰ�G�S�v&"r��FF����&V�3��~�[��ȹ�r�~�)��ق�Xκk�r�~��N��κxu���FF6WG3�����&Vâ~�[��i�(i.�;^�:�٨�r�FF��2�2�ヂ��SU��&6�w&�V�D6���#�w&v&�cr�3��#S��R�r�&�&FW%&F�W3�G�����&Vâ~�;^�:�٨�(i.�xɹ�Y���r�FF��r��Ò�C������&6�w&�V�D6���#�w&v&�Sb����#C���R�r�&�&FW%&F�W3�G�����&Vâ~�xɹ�Y���(i.�xɹɘN�8�r�FF��sB�R�sr�bÃR�U��&6�w&�V�D6���#�w&v&�sB�##"�#���R�r�&�&FW%&F�W3�GТТ����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R���Vv��3���VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�w&V7Br�FF��s�'���F���F���6��&6�3���&Væ3��2�FF6WB��&V²s�r�2�&r�rRw�����66�W3�����&Vv��E�W&�G'VR�F�6�3��6��&6��c��b�rRw��w&�C��6���#�w&v&�3�3b�S��R�w��ǃ��w&�C��F�7���f�6W��ТЧғ����������DUd�4R4�%B����Ц�Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�vFWd6�'Br�ǰ�G�S�w&F"r��FF����&V�3��~�;^�:�٨��;κZ�r�~�xɹȹ����ʂr�~�xɹɘN�8��ʂu���FF6WG3�����&Vât�2r�FF���Ãb�E��&�&FW$6���#�r6s�&fr�&6�w&�V�D6���#�w&v&�cr�3��#S��R�r����E&F�W3�7�����&Vâu2r�FF���R�Ó"�r���&�&FW$6���#�r33�&Fc�r�&6�w&�V�D6���#�w&v&�Sb����#C����r����E&F�W3�7�����&Vâv��2r�FF��s��rÓ"�rÓU��&�&FW$6���#�r3#&C6VRr�&6�w&�V�D6���#�w&v&�3B�#�#3�����r����E&F�W3�7�����&Vât�rr�FF��C��R�#"�Ór�%��&�&FW$6���#�r6c�ssr�&6�w&�V�D6���#�w&v&�#C��2�2����r����E&F�W3�7ТТ����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R��66�W3��#���v�TƖ�W3��6���#�w&v&�3�3b�S��R�w��w&�C��6���#�w&v&�3�3b�S��R�w��F�6�3��F�7���f�6W��7VvvW7FVD֖��7VvvW7FVD��������Vv��3���VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�v6�&6�Rr�FF��s�'��ТЧғ����������%T$$�R4�%B����Ц6��7B$FF�4��f��FW"�3��2�7�����3�簢6��7BFt6���"�2�C���wB��fW"s�w&v&�3B�#�#3���R�s�2�C���wB�72s�w&v&�#BÓ"�#S"��R�s�2�C���wB�&WF&vWBs�w&v&�#S�Cb�c��R�s�2�C���wB��WFs�w&v&�#CB�B��"��R�s�2�C���wB�V���s�w&v&�S"�#�S2��R�s�w&v&��b�cR�#S��R�s��&WGW&��&Væ2���FF�����2�7Ǔ�2��2�b��#��F������F��7'B�2��C��R����&6�w&�V�D6���#�Ft6���'Ӱ�ғ���Wr6�'B�F�7V�V�B�vWDV�V�V�D'��B�v'V&&�T6�'Br�ǰ�G�S�v'V&&�Rr�FF��FF6WG3�$FF����F���3���&W7��6�fS�G'VR����F��7V7E&F��f�6R���Vv��3���VvV�C���6�F���wF�r��&V�3��W6U���E7G��S�G'VR����E7G��S�v6�&6�Rr�FF��s��f��C��6��S�����F���F���6��&6�3���&Væ3������S�G�f�B�2�&r炗���(i$2�Nٙ��ʃ�G�2�&r��F�f��VB���V�����66�W3������F�F�S��F�7���G'VR�FW�C�tv&V�W72�����RW6W'2�r�6���#�r3v#���w��F�6�3��6��&6��c��f�B�b���w&�C��6���#�w&v&�3�3b�S��R�w�������F�F�S��F�7���G'VR�FW�C�t�(i$2�Nٙ��ʂ�R�r�6���#�r3v#���w��&Vv��E�W&�G'VR�F�6�3��6��&6��c��b�rRw��w&�C��6���#�w&v&�3�3b�S��R�w�ТТЧғ����67&�C���&�G�����F���
